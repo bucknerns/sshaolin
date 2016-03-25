@@ -37,7 +37,6 @@ class SSHBehavior(BaseSSHClass):
         except ValueError as exception:
             cls._log.error("Key Generate exception: \n {0}".format(exception))
             raise exception
-
         return SSHKey(
             public_key=public_key.exportKey(public_format, passphrase),
             private_key=private_key.exportKey(private_format, passphrase))

@@ -1,30 +1,14 @@
-import os
-import unittest
-import getpass
 from sshaolin.client import SSHClient
 
+from tests.base_test import BaseTestCase
 
-class TestLocalhost(unittest.TestCase):
+
+class TestLocalhost(BaseTestCase):
     @classmethod
     def setUpClass(cls):
-        auth_path = os.path.expanduser("~/.ssh/authorized_keys")
-        pub_key_path = os.path.expanduser("~/.ssh/id_rsa.pub")
-        auth_exists = os.path.exists(auth_path)
-        pub_exists = os.path.exists(pub_key_path)
-        if pub_exists:
-            with open(pub_key_path) as fp:
-                public_key = fp.read()
-        if auth_exists:
-            with open(auth_path) as fp:
-                auth_file = fp.read()
-            if pub_key_path not in auth_file:
-                with open(auth_path, "a") as fp:
-                    fp.write("\n")
-                    fp.write(public_key)
-                    fp.write("\n")
+        super(TestLocalhost, cls).setUpClass()
         cls.client = SSHClient(
-            "localhost", 22, getpass.getuser(), look_for_keys=True,
-            allow_agent=True)
+            "localhost", 22, cls.username, key_filename=cls.pkey_path)
 
     def test_arun_command(self):
         resp = self.client.execute_command("ls -l")
