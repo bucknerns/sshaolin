@@ -25,7 +25,7 @@ class TestLocalhost(unittest.TestCase):
         cls.client = SSHClient(
             "localhost", 22, getpass.getuser(), look_for_keys=True,
             allow_agent=True)
-    """
+
     def test_arun_command(self):
         resp = self.client.execute_command("ls -l")
         self.assertTrue(
@@ -43,7 +43,7 @@ class TestLocalhost(unittest.TestCase):
         self.assertFalse(resp.stderr)
         self.assertNotEqual(resp.stdout, resp2.stdout)
         shell.close()
-    """
+
     def test_create_sftp(self):
         sftp = self.client.create_sftp()
         resp = sftp.listdir("/")
