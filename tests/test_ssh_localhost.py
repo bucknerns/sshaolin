@@ -1,12 +1,7 @@
 import os
 import unittest
 import getpass
-import logging
 from sshaolin.client import SSHClient
-
-# root = logging.getLogger()
-# root.addHandler(logging.StreamHandler())
-# root.setLevel(logging.ERROR)
 
 
 class TestLocalhost(unittest.TestCase):
