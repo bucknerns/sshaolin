@@ -4,8 +4,6 @@ SSHaolin: SSH from Ninjas
 Example no logging
 ------------------
 
-::
-
     In [1]: from sshaolin.client import SSHClient
 
     In [2]: client = SSHClient("192.168.0.69", 22, "mega255", look_for_keys=True)
@@ -46,8 +44,6 @@ Example no logging
 
 Example with logging
 --------------------
-
-::
 
     In [1]: from sshaolin.client import SSHClient
 
