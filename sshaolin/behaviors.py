@@ -28,6 +28,16 @@ class SSHBehavior(BaseSSHClass):
     def generate_ssh_keys(
         cls, size=None, passphrase=None, private_format=KeyFormats.PEM,
             public_format=KeyFormats.OPENSSH):
+        """Generates a public and private rsa ssh key
+
+        Returns an SSHKeyResponse objects which has both the public and private
+        key as attributes
+
+        :param int size: RSA modulus length (must be a multiple of 256)
+                             and >= 1024
+        :param str passphrase: The pass phrase to derive the encryption key
+                                from
+        """
         size = size or 4096
         passphrase = passphrase or ""
 
@@ -44,6 +54,13 @@ class SSHBehavior(BaseSSHClass):
     @classmethod
     def write_ssh_keys(
             cls, private_key, public_key=None, folder=None, key_name=None):
+        """Writes secure keys to a local file
+
+        :param str private_key: Private rsa ssh key string
+        :param str public_key: Public rsa ssh key string
+        :param str folder: Path to put the file(s)
+        :param str key_name: Name of the private_key file, 'id_rsa' by default
+        """
         folder = folder or "."
         key_name = key_name or "id_rsa"
 
@@ -58,6 +75,14 @@ class SSHBehavior(BaseSSHClass):
 
     @staticmethod
     def write_file(path, string=None, permissions=0o600):
+        """Writes files with parameterized permissions
+
+        :param str path: Path to write the file to
+        :param str string: String to write into the file
+        :param int permissions: Permissions to give the file
+        """
+        if string is None:
+            return
         with open(path, "w") as fp:
             fp.write(string or "")
         os.chmod(path, permissions)

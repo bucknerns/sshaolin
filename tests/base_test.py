@@ -1,10 +1,11 @@
-from os import path
-from uuid import uuid4
+from functools import wraps
+import errno
+import os
+import signal
 import getpass
-import sys
 import unittest
 
-from sshaolin.behaviors import SSHBehavior
+from sshaolin.client import SSHClient
 
 
 class BaseTestCase(unittest.TestCase):
@@ -12,33 +13,41 @@ class BaseTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.storage_folder = path.join(path.expanduser("~"), ".ssh")
-        cls.rand_name = uuid4().hex
-        try:
-            keys = SSHBehavior.generate_ssh_keys()
-        except TypeError as e:
-            message = """Tests skipped because key generation failed
-                Probably due to pycrypto bug
-                https://github.com/dlitz/pycrypto/issues/99
-                {0}\n""".format(e)
-            sys.stdout.write(message)
-            raise unittest.SkipTest(message)
-        keys.public_key = "{0} {1}".format(
-            keys.public_key, cls.rand_name)
-        SSHBehavior.write_ssh_keys(
-            private_key=keys.private_key, public_key=keys.public_key,
-            folder=cls.storage_folder, key_name=cls.rand_name)
-        cls.auth_path = path.join(cls.storage_folder, "authorized_keys")
-        cls.pkey_path = path.join(cls.storage_folder, cls.rand_name)
-        with open(cls.auth_path, "a") as fp:
-            fp.write("\n")
-            fp.write(keys.public_key)
-            fp.write("\n")
+        super(BaseTestCase, cls).setUpClass()
+        cls.client = SSHClient(
+            "localhost", 22, cls.username, look_for_keys=True)
 
-    @classmethod
-    def tearDownClass(cls):
-        with open(cls.auth_path) as fp:
-            public_keys = [
-                line for line in fp if line and cls.rand_name not in line]
-        with open(cls.auth_path, "w") as fp:
-            fp.write("".join(public_keys))
+
+class TimeoutError(Exception):
+    pass
+
+
+def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
+    def decorator(func):
+        def _handle_timeout(signum, frame):
+            raise TimeoutError(error_message)
+
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _handle_timeout)
+            signal.alarm(seconds)
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+            return result
+
+        return wraps(func)(wrapper)
+
+    return decorator
+
+
+# special test case for running ssh commands at module level
+@timeout()
+def import_ssh_test():
+    from tests import ssh_run_ls_on_import  # flak8: noqa
+
+try:
+    import_ssh_test()
+    test_pass = True
+except:
+    test_pass = False

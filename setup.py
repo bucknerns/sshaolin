@@ -16,10 +16,11 @@ import sys
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
-
+# Establish a consistent base directory relative to the setup.py file
 os.chdir(os.path.abspath(os.path.dirname(__file__)))
 
 
+# tox integration
 class Tox(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)

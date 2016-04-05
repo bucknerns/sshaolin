@@ -19,9 +19,13 @@ import time
 
 from paramiko import AutoAddPolicy, RSAKey
 from paramiko.client import SSHClient as ParamikoSSHClient
+from paramiko import py3compat
 
 from sshaolin import common
 from sshaolin.models import CommandResponse
+
+# dirty hack to fix threading import lock (issue 104) by preloading module
+py3compat.u("dirty hack")
 
 
 class ProxyTypes(object):

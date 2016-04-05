@@ -1,15 +1,7 @@
-from sshaolin.client import SSHClient
-
-from tests.base_test import BaseTestCase
+from tests.base_test import BaseTestCase, test_pass
 
 
 class TestLocalhost(BaseTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super(TestLocalhost, cls).setUpClass()
-        cls.client = SSHClient(
-            "localhost", 22, cls.username, key_filename=cls.pkey_path)
-
     def test_arun_command(self):
         resp = self.client.execute_command("ls -l")
         self.assertTrue(
@@ -34,3 +26,6 @@ class TestLocalhost(BaseTestCase):
         self.assertIsInstance(resp, list)
         self.assertTrue(resp, "root dir had no items this makes no sense")
         sftp.close()
+
+    def test_run_at_import(self):
+        self.assertTrue(test_pass, "did not execute at module level")

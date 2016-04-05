@@ -96,8 +96,10 @@ class PortForward(BaseSSHClass):
     def close(self):
         try:
             os.kill(self.pid, signal.SIGKILL)
-        except OSError:
-            pass
+        except OSError as e:
+            self._log.warning(
+                "Close called more than once or process ended unexpectedly")
+            self._log.warning(e)
 
 
 class SocksProxy(PortForward):
