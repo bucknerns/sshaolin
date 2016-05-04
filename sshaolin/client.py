@@ -10,7 +10,7 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-from StringIO import StringIO
+from six import StringIO
 from socks import socket, create_connection
 from types import MethodType
 from uuid import uuid4
