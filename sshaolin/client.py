@@ -27,6 +27,11 @@ from sshaolin.models import CommandResponse
 # dirty hack to fix threading import lock (issue 104) by preloading module
 py3compat.u("dirty hack")
 
+try:
+    from cryptography.hazmat.backends import default_backend
+    default_backend()
+except ImportError:
+    pass
 
 class ProxyTypes(object):
     SOCKS5 = 2
