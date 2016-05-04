@@ -40,7 +40,6 @@ $ pip install git+https://github.com/bucknerns/sshaolin
 * Easy connection cleanup! (No more manual closing!)
 
 ## Examples:
-[comment]: <> (TODO: Eventually include proxy examples here)
 
 Running `ls -ltr` on server `foo` as user `bar` with password `blah`
 ```python
