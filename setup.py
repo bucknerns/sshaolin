@@ -40,7 +40,7 @@ setup(
     long_description='{0}'.format(open('README.rst').read()),
     author='Nathan Buckner',
     author_email='bucknerns@gmail.com',
-    install_requires=['paramiko', 'pysocks'],
+    install_requires=['paramiko', 'pysocks', 'six'],
     packages=find_packages(exclude=('tests*',)),
     license=open('LICENSE').read(),
     classifiers=(
