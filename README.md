@@ -1,5 +1,5 @@
 [![license](https://img.shields.io/github/license/bucknerns/sshaolin.svg?maxAge=2592000)](https://github.com/bucknerns/sshaolin/blob/master/LICENSE)
-[![GitHub issues](https://img.shields.io/github/issues-raw/bucknerns/sshaolin.svg?maxAge=2592000)](https://github.com/bucknerns/sshaolin/issues)
+[![GitHub issues](https://img.shields.io/github/issues/bucknerns/sshaolin.svg?maxAge=2592000)](https://github.com/bucknerns/sshaolin/issues)
 
 # SSHaolin: SSH for Ninjas
 
