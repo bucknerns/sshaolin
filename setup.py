@@ -37,7 +37,7 @@ setup(
     name='sshaolin',
     version='0.0.1',
     description='SSH for Ninjas',
-    long_description='{0}'.format(open('README.rst').read()),
+    long_description='{0}'.format(open('README.md').read()),
     author='Nathan Buckner',
     author_email='bucknerns@gmail.com',
     install_requires=['paramiko', 'pysocks', 'six'],
