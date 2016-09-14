@@ -54,8 +54,9 @@ def SSHLogger(func):
                 "response elapsed.....: {elapsed}\n"
                 "{dash}\n").format(
                 dash="-" * 42, equals="=" * 42, elapsed=elapsed,
-                stdout=resp.stdout.rstrip(b"\n"),
-                stderr=resp.stderr.rstrip(b"\n"), exit_status=resp.exit_status)
+                stdout=resp.stdout.decode("UTF-8", "ignore"),
+                stderr=resp.stderr.decode("UTF-8", "ignore"),
+                exit_status=resp.exit_status)
             self._log.info(message)
         return resp
     return wrapper

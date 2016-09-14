@@ -10,24 +10,24 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-from Crypto.PublicKey import RSA
 import os
+
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.serialization import (
+    Encoding, PrivateFormat, PublicFormat, NoEncryption,
+    BestAvailableEncryption)
 
 from sshaolin.common import BaseSSHClass
 from sshaolin.models import SSHKey
 
 
-class KeyFormats(object):
-    OPENSSH = "OpenSSH"
-    PEM = "PEM"
-    DER = "DER"
-
-
 class SSHBehavior(BaseSSHClass):
     @classmethod
     def generate_ssh_keys(
-        cls, size=None, passphrase=None, private_format=KeyFormats.PEM,
-            public_format=KeyFormats.OPENSSH):
+        cls, size=4096, passphrase=None, private_format=PrivateFormat.PKCS8,
+        public_format=PublicFormat.OpenSSH, private_encoding=Encoding.PEM,
+            public_encoding=Encoding.OpenSSH):
         """Generates a public and private rsa ssh key
 
         Returns an SSHKeyResponse objects which has both the public and private
@@ -38,18 +38,19 @@ class SSHBehavior(BaseSSHClass):
         :param str passphrase: The pass phrase to derive the encryption key
                                 from
         """
-        size = size or 4096
-        passphrase = passphrase or ""
+        encryption = (
+            BestAvailableEncryption(passphrase) if passphrase else
+            NoEncryption())
+        key = rsa.generate_private_key(
+            backend=default_backend(),
+            public_exponent=65537,
+            key_size=size)
 
-        try:
-            private_key = RSA.generate(size)
-            public_key = private_key.publickey()
-        except ValueError as exception:
-            cls._log.error("Key Generate exception: \n {0}".format(exception))
-            raise exception
         return SSHKey(
-            public_key=public_key.exportKey(public_format, passphrase),
-            private_key=private_key.exportKey(private_format, passphrase))
+            public_key=key.public_key().public_bytes(
+                public_encoding, public_format),
+            private_key=key.private_bytes(
+                Encoding.PEM, private_format, encryption))
 
     @classmethod
     def write_ssh_keys(
@@ -83,6 +84,23 @@ class SSHBehavior(BaseSSHClass):
         """
         if string is None:
             return
-        with open(path, "w") as fp:
+        with open(path, "wb") as fp:
             fp.write(string or "")
         os.chmod(path, permissions)
+
+    @classmethod
+    def generate_and_write_files(
+            cls, folder=None, key_name=None, **generate_ssh_keys_args):
+        """Generate and write public and private rsa keys to local files
+
+        :param str path: Path to put the file(s)
+        :param str file_name: Name of the private_key file, 'id_rsa' by default
+        :param int key_size: RSA modulus length (must be a multiple of 256)
+                             and >= 1024
+        :param str pass_phrase: The pass phrase to derive the encryption key
+                                from
+        """
+        keys = cls.generate_ssh_keys(**generate_ssh_keys_args)
+        cls.write_ssh_keys(
+            private_key=keys.private_key, public_key=keys.public_key,
+            folder=folder, key_name=key_name)

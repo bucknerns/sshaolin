@@ -24,14 +24,18 @@ from paramiko import py3compat
 from sshaolin import common
 from sshaolin.models import CommandResponse
 
-# dirty hack to fix threading import lock (issue 104) by preloading module
-py3compat.u("dirty hack")
+# this is a hack to preimport dependencies imported in a thread during connect
+# which causes a deadlock. https://github.com/paramiko/paramiko/issues/104
+py3compat.u("")
 
+# dirty hack 2.0 also issue 104
+# Try / Catch to prevent users using paramiko<2.0.0 from raising an ImportError
 try:
     from cryptography.hazmat.backends import default_backend
     default_backend()
 except ImportError:
     pass
+
 
 class ProxyTypes(object):
     SOCKS5 = 2
@@ -44,7 +48,6 @@ class ExtendedParamikoSSHClient(ParamikoSSHClient):
             raise_exceptions=False):
         timeout = timeout or common.DEFAULT_TIMEOUT
         chan = self._transport.open_session()
-        chan.get_pty()
         chan.settimeout(common.POLLING_RATE)
         chan.exec_command(command)
         stdin_str = stdin_str if stdin_file is None else stdin_file.read()
