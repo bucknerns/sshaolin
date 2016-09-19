@@ -10,11 +10,10 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-from six import StringIO
+import six
 from socks import socket, create_connection
 from types import MethodType
 from uuid import uuid4
-import io
 import time
 
 from paramiko import AutoAddPolicy, RSAKey
@@ -137,7 +136,7 @@ class SSHClient(common.BaseSSHClass):
 
         if connect_kwargs.get("pkey") is not None:
             connect_kwargs["pkey"] = RSAKey.from_private_key(
-                io.StringIO(unicode(connect_kwargs["pkey"])))
+                six.StringIO(six.u(connect_kwargs["pkey"])))
 
         proxy_type = proxy_type or self.proxy_type
         proxy_ip = proxy_ip or self.proxy_ip
@@ -223,12 +222,12 @@ class SFTPShell(common.BaseSSHClass):
         return ret_val
 
     def get_file(self, remote_path):
-        ret_val = StringIO()
+        ret_val = six.StringIO()
         self.getfo(remote_path, ret_val)
         return ret_val.getvalue()
 
     def write_file(self, data, remote_path):
-        return self.putfo(StringIO(data), remote_path)
+        return self.putfo(six.StringIO(data), remote_path)
 
     def close(self):
         if hasattr(self, "sftp"):

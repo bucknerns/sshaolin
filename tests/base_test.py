@@ -44,7 +44,8 @@ def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
 # special test case for running ssh commands at module level
 @timeout()
 def import_ssh_test():
-    from tests import ssh_run_ls_on_import  # flak8: noqa
+    from tests import ssh_run_ls_on_import
+    ssh_run_ls_on_import
 
 try:
     import_ssh_test()
