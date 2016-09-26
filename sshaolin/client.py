@@ -86,7 +86,8 @@ class SSHClient(common.BaseSSHClass):
         self, hostname=None, port=22, username=None, password=None,
         accept_missing_host_key=True, timeout=None, compress=True, pkey=None,
         look_for_keys=False, allow_agent=False, key_filename=None,
-            proxy_type=None, proxy_ip=None, proxy_port=None, sock=None):
+        proxy_type=None, proxy_ip=None, proxy_port=None, sock=None,
+            log_calls=True, log_responses=True):
         super(SSHClient, self).__init__()
         self.connect_kwargs = {}
         self.accept_missing_host_key = accept_missing_host_key
@@ -104,6 +105,8 @@ class SSHClient(common.BaseSSHClass):
         self.connect_kwargs["allow_agent"] = allow_agent
         self.connect_kwargs["key_filename"] = key_filename
         self.connect_kwargs["sock"] = sock
+        self.log_calls = log_calls
+        self.log_responses = log_responses
 
     @property
     def timeout(self):

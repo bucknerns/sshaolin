@@ -35,7 +35,8 @@ def SSHLogger(func):
             "{dash}\n").format(
             dash="-" * DASH_WIDTH, equals="=" * DASH_WIDTH, name=func.__name__,
             args=args, kwargs=kwargs)
-        self._log.info(message)
+        if self.log_calls:
+            self._log.info(message)
 
         start = time.time()
         try:
@@ -57,7 +58,8 @@ def SSHLogger(func):
                 stdout=resp.stdout.decode("UTF-8", "ignore"),
                 stderr=resp.stderr.decode("UTF-8", "ignore"),
                 exit_status=resp.exit_status)
-            self._log.info(message)
+            if self.log_responses:
+                self._log.info(message)
         return resp
     return wrapper
 
