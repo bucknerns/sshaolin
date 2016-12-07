@@ -136,7 +136,7 @@ class SSHClient(common.BaseSSHClass):
 
         if connect_kwargs.get("pkey") is not None:
             connect_kwargs["pkey"] = RSAKey.from_private_key(
-                six.StringIO(six.u(connect_kwargs["pkey"])))
+                six.BytesIO(six.u(connect_kwargs["pkey"])))
 
         proxy_type = proxy_type or self.proxy_type
         proxy_ip = proxy_ip or self.proxy_ip
@@ -222,12 +222,12 @@ class SFTPShell(common.BaseSSHClass):
         return ret_val
 
     def get_file(self, remote_path):
-        ret_val = six.StringIO()
+        ret_val = six.BytesIO()
         self.getfo(remote_path, ret_val)
         return ret_val.getvalue()
 
     def write_file(self, data, remote_path):
-        return self.putfo(six.StringIO(data), remote_path)
+        return self.putfo(six.BytesIO(data), remote_path)
 
     def close(self):
         if hasattr(self, "sftp"):

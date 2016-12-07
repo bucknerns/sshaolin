@@ -29,10 +29,10 @@ def SSHLogger(func):
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
         message = (
-            "\n{equals}\nCALL\n{dash}\n"
-            "{name} args..........: {args}\n"
-            "{name} kwargs........: {kwargs}\n"
-            "{dash}\n").format(
+            u"\n{equals}\nCALL\n{dash}\n"
+            u"{name} args..........: {args}\n"
+            u"{name} kwargs........: {kwargs}\n"
+            u"{dash}\n").format(
             dash="-" * DASH_WIDTH, equals="=" * DASH_WIDTH, name=func.__name__,
             args=args, kwargs=kwargs)
         self._log.info(message)
@@ -47,12 +47,12 @@ def SSHLogger(func):
         elapsed = time.time() - start
         if isinstance(resp, CommandResponse):
             message = (
-                "\n{equals}\nRESPONSE\n{dash}\n"
-                "response stdout......: {stdout}\n"
-                "response stderr......: {stderr}\n"
-                "response exit_status.: {exit_status}\n"
-                "response elapsed.....: {elapsed}\n"
-                "{dash}\n").format(
+                u"\n{equals}\nRESPONSE\n{dash}\n"
+                u"response stdout......: {stdout}\n"
+                u"response stderr......: {stderr}\n"
+                u"response exit_status.: {exit_status}\n"
+                u"response elapsed.....: {elapsed}\n"
+                u"{dash}\n").format(
                 dash="-" * 42, equals="=" * 42, elapsed=elapsed,
                 stdout=resp.stdout.decode("UTF-8", "ignore"),
                 stderr=resp.stderr.decode("UTF-8", "ignore"),
