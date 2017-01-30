@@ -213,7 +213,7 @@ class SFTPShell(common.BaseSSHClass):
     def exists(self, path):
         ret_val = False
         try:
-            self.sftp.stat(path)
+            self.stat(path)
             ret_val = True
         except IOError as e:
             if e[0] != 2:
