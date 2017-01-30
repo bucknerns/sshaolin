@@ -72,13 +72,13 @@ class SSHProxy(BaseSSHClass):
         hostname = connect_kwargs.get("hostname", self.hostname)
         address = address or hostname if remote else "localhost"
         proc = subprocess.Popen(args, preexec_fn=os.setsid)
-        return PortForward(proc.pid, address, port)
+        return PortForward(proc.pid, address=address, port=port)
 
     def create_socks_proxy(self, port, address=None, **connect_kwargs):
         args = self._get_args(**connect_kwargs)
         args.append("-D{0}:{1}".format(address or "0.0.0.0", port))
         proc = subprocess.Popen(args, preexec_fn=os.setsid)
-        return SocksProxy(proc.pid, port or "localhost", address)
+        return SocksProxy(proc.pid, port=port or "localhost", address=address)
 
 
 class PortForward(BaseSSHClass):
