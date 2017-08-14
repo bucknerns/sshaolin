@@ -33,6 +33,7 @@ class Tox(TestCommand):
         errno = tox.cmdline(self.test_args)
         sys.exit(errno)
 
+
 setup(
     name='sshaolin',
     version='0.0.4',

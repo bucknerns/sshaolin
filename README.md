@@ -27,6 +27,14 @@ Recommended:
 $ pip install git+https://github.com/bucknerns/sshaolin
 ```
 
+## Unit Tests
+
+* Must be running an SSH server at localhost:22
+* Must have Passwordsless SSH Auth to localhost
+```python
+$ tox
+```
+
 ## Requirements:
 
 * [paramiko](https://github.com/paramiko/paramiko)

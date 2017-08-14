@@ -1,3 +1,4 @@
+from sshaolin.client import CommandOperationTimeOut
 from tests.base_test import BaseTestCase, test_pass
 
 
@@ -19,6 +20,17 @@ class TestLocalhost(BaseTestCase):
         self.assertFalse(resp.stderr)
         self.assertNotEqual(resp.stdout, resp2.stdout)
         shell.close()
+
+    def test_command_timeout(self):
+        timeout = 1
+        command = 'sleep 300'
+
+        shell = self.client.create_shell(timeout=timeout)
+        with self.assertRaises(CommandOperationTimeOut) as exc_timeout:
+            shell.execute_command(command)
+
+            self.assertEqual(exc_timeout.timeout, timeout)
+            self.assertEqual(exc_timeout.command, command)
 
     def test_create_sftp(self):
         sftp = self.client.create_sftp()
