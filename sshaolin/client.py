@@ -31,6 +31,8 @@ py3compat.u("")
 # Try / Catch to prevent users using paramiko<2.0.0 from raising an ImportError
 try:
     from cryptography.hazmat.backends import default_backend
+    from cryptography.utils import int_from_bytes
+    int_from_bytes(b"a", "big")
     default_backend()
 except ImportError:
     pass
