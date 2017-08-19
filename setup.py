@@ -36,7 +36,7 @@ class Tox(TestCommand):
 
 setup(
     name='sshaolin',
-    version='0.0.4',
+    version='0.0.5',
     description='SSH for Ninjas',
     long_description='{0}'.format(open('README.md').read()),
     author='Nathan Buckner',
