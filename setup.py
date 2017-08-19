@@ -44,13 +44,13 @@ setup(
     install_requires=['paramiko', 'pysocks', 'six'],
     packages=find_packages(exclude=('tests*',)),
     license=open('LICENSE').read(),
-    classifiers=(
+    classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Natural Language :: English',
         'License :: Other/Proprietary License',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7'),
+        'Programming Language :: Python :: 2.7'],
     tests_require=['tox'],
     cmdclass={'test': Tox})
