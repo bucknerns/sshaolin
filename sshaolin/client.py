@@ -287,7 +287,7 @@ class SSHShell(common.BaseSSHClass):
             self._wait_for_active_shell(max_time)
             self.channel.send(cmd)
             response = self._read_shell_response(uuid, max_time)
-        except socket.timeout as e:
+        except socket.timeout:
             if timeout_action == self.RAISE_DISCONNECT:
                 self.close()
             raise
