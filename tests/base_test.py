@@ -51,5 +51,5 @@ def import_ssh_test():
 try:
     import_ssh_test()
     test_pass = True
-except:
+except Exception:
     test_pass = False

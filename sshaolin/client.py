@@ -27,7 +27,7 @@ from sshaolin.models import CommandResponse
 
 # this is a hack to preimport dependencies imported in a thread during connect
 # which causes a deadlock. https://github.com/paramiko/paramiko/issues/104
-py3compat.u("")
+py3compat.u("".encode())
 
 # dirty hack 2.0 also issue 104
 # Try / Catch to prevent users using paramiko<2.0.0 from raising an ImportError
