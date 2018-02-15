@@ -18,7 +18,7 @@ class BaseModel(object):
         try:
             if type(obj) == type(self) and vars(obj) == vars(self):
                 return True
-        except:
+        except Exception:
             pass
         return False
 
