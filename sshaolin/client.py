@@ -10,10 +10,12 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-import six
+from io import BytesIO
 from socks import socket, create_connection
 from types import MethodType
 from uuid import uuid4
+import six
+import threading
 import time
 
 from paramiko import AutoAddPolicy, RSAKey
@@ -25,7 +27,7 @@ from sshaolin.models import CommandResponse
 
 # this is a hack to preimport dependencies imported in a thread during connect
 # which causes a deadlock. https://github.com/paramiko/paramiko/issues/104
-py3compat.u("")
+py3compat.u("".encode())
 
 # dirty hack 2.0 also issue 104
 # Try / Catch to prevent users using paramiko<2.0.0 from raising an ImportError
@@ -39,14 +41,7 @@ except ImportError:
 
 
 class CommandOperationTimeOut(socket.timeout):
-    """
-    Command failed to execute within given time period
-    """
-
-    def __init__(self, command, timeout, *args, **kwargs):
-        super(CommandOperationTimeOut, self).__init__(*args, **kwargs)
-        self.executed_command = command
-        self.timeout = timeout
+    pass
 
 
 class ProxyTypes(object):
@@ -54,13 +49,23 @@ class ProxyTypes(object):
     SOCKS4 = 1
 
 
+def read_pipe(pipe, fp_out):
+    def target():
+        for line in iter(pipe.readline, b""):
+            fp_out.write(line)
+    thread = threading.Thread(target=target)
+    thread.daemon = True
+    thread.start()
+    return thread
+
+
 class ExtendedParamikoSSHClient(ParamikoSSHClient):
     def execute_command(
-        self, command, bufsize=-1, timeout=None, stdin_str="", stdin_file=None,
-            raise_exceptions=False):
-        timeout = timeout or common.DEFAULT_TIMEOUT
+        self, command, bufsize=-1, timeout=None,
+            stdin_str="", stdin_file=None, raise_exceptions=False):
         chan = self._transport.open_session()
-        chan.settimeout(common.POLLING_RATE)
+        chan.settimeout(timeout)
+        start = time.time()
         chan.exec_command(command)
         stdin_str = stdin_str if stdin_file is None else stdin_file.read()
         stdin = chan.makefile("wb", bufsize)
@@ -69,46 +74,39 @@ class ExtendedParamikoSSHClient(ParamikoSSHClient):
         stdin.write(stdin_str)
         stdin.write("\n\x04")
         stdin.close()
-        stdout_str = stderr_str = b""
         exit_status = None
-        max_time = time.time() + timeout
-        while not chan.exit_status_ready():
-            stderr_str += self._read_channel(stderr)
-            stdout_str += self._read_channel(stdout)
-            if max_time < time.time():
-                raise CommandOperationTimeOut(
-                    command,
-                    timeout,
-                    "Command timed out\nSTDOUT:{0}\nSTDERR:{1}\n".format(
-                        stdout_str, stderr_str))
+        stdout_bytes = BytesIO()
+        stderr_bytes = BytesIO()
+        out_thread = read_pipe(stdout, stdout_bytes)
+        err_thread = read_pipe(stderr, stderr_bytes)
+        out_thread.join(timeout)
+        err_thread.join(timeout)
+        if timeout and (time.time() - start) > timeout:
+            raise CommandOperationTimeOut("Command timed out")
+        for i in range(2):
+            if chan.exit_status_ready():
+                break
         exit_status = chan.recv_exit_status()
-        stdout_str += self._read_channel(stdout)
-        stderr_str += self._read_channel(stderr)
         chan.close()
-        return stdin_str, stdout_str, stderr_str, exit_status
-
-    def _read_channel(self, chan):
-        read = b""
-        try:
-            read += chan.read()
-        except socket.timeout:
-            pass
-        return read
+        return (
+            stdin_str, stdout_bytes.getvalue(), stderr_bytes.getvalue(),
+            exit_status)
 
 
 class SSHClient(common.BaseSSHClass):
     def __init__(
         self, hostname=None, port=22, username=None, password=None,
-        accept_missing_host_key=True, timeout=None, compress=True, pkey=None,
-        look_for_keys=False, allow_agent=False, key_filename=None,
-            proxy_type=None, proxy_ip=None, proxy_port=None, sock=None):
+        accept_missing_host_key=True, timeout=common.DEFAULT_TIMEOUT,
+        compress=True, pkey=None, look_for_keys=False, allow_agent=False,
+        key_filename=None, proxy_type=None, proxy_ip=None, proxy_port=None,
+            sock=None):
         super(SSHClient, self).__init__()
         self.connect_kwargs = {}
         self.accept_missing_host_key = accept_missing_host_key
         self.proxy_port = proxy_port
         self.proxy_ip = proxy_ip
         self.proxy_type = proxy_type
-        self.connect_kwargs["timeout"] = timeout or common.DEFAULT_TIMEOUT
+        self.connect_kwargs["timeout"] = timeout
         self.connect_kwargs["hostname"] = hostname
         self.connect_kwargs["port"] = int(port)
         self.connect_kwargs["username"] = username
@@ -172,7 +170,7 @@ class SSHClient(common.BaseSSHClass):
             **connect_kwargs):
         ssh_client = self._connect(**connect_kwargs)
         stdin, stdout, stderr, exit_status = ssh_client.execute_command(
-            timeout=self._get_timeout(connect_kwargs.get("timeout")),
+            timeout=connect_kwargs.get("timeout", self.timeout),
             command=command, bufsize=bufsize, stdin_str=stdin_str,
             stdin_file=stdin_file)
         ssh_client.close()
@@ -180,14 +178,11 @@ class SSHClient(common.BaseSSHClass):
         return CommandResponse(
             stdin=stdin, stdout=stdout, stderr=stderr, exit_status=exit_status)
 
-    def _get_timeout(self, timeout=None):
-        return timeout if timeout is not None else self.timeout
-
     @common.SSHLogger
     def create_shell(self, keepalive=None, **connect_kwargs):
         connection = self._connect(**connect_kwargs)
         return SSHShell(
-            connection, self._get_timeout(connect_kwargs.get("timeout")),
+            connection, connect_kwargs.get("timeout", self.timeout),
             keepalive)
 
     @common.SSHLogger
@@ -277,9 +272,9 @@ class SSHShell(common.BaseSSHClass):
 
     @common.SSHLogger
     def execute_command(
-        self, cmd, timeout=None, timeout_action=RAISE_DISCONNECT,
-            exception_on_timeout=True):
-        max_time = time.time() + self._get_timeout(timeout)
+        self, cmd, timeout_action=RAISE_DISCONNECT,
+            exception_on_timeout=True, **kwargs):
+        max_time = time.time() + kwargs.get("timeout", self.timeout)
         uuid = uuid4().hex.encode()
         cmd = "echo {1}\n{0}\necho {1} $?\n".format(cmd.strip(), uuid).encode()
         try:
@@ -319,11 +314,7 @@ class SSHShell(common.BaseSSHClass):
                     exit_status = None
                 break
         else:
-            raise CommandOperationTimeOut(
-                "Unknown",
-                max_time,
-                "Command timed out\nSTDOUT:{0}\nSTDERR:{1}\n".format(
-                    stdout, stderr))
+            raise CommandOperationTimeOut("Command timed out")
         response = CommandResponse(
             stdin=None, stdout=stdout.strip(), stderr=stderr.strip(),
             exit_status=exit_status)
@@ -340,6 +331,3 @@ class SSHShell(common.BaseSSHClass):
     def _clear_channel(self):
         self._read_channel(self.channel.recv)
         self._read_channel(self.channel.recv_stderr)
-
-    def _get_timeout(self, timeout=None):
-        return timeout if timeout is not None else self.timeout
