@@ -41,14 +41,7 @@ except ImportError:
 
 
 class CommandOperationTimeOut(socket.timeout):
-    """
-    Command failed to execute within given time period
-    """
-
-    def __init__(self, command, timeout, *args, **kwargs):
-        super(CommandOperationTimeOut, self).__init__(*args, **kwargs)
-        self.executed_command = command
-        self.timeout = timeout
+    pass
 
 
 class ProxyTypes(object):
@@ -89,7 +82,7 @@ class ExtendedParamikoSSHClient(ParamikoSSHClient):
         out_thread.join(timeout)
         err_thread.join(timeout)
         if timeout and (time.time() - start) > timeout:
-            raise socket.timeout()
+            raise CommandOperationTimeOut("Command timed out")
         for i in range(2):
             if chan.exit_status_ready():
                 break
@@ -321,11 +314,7 @@ class SSHShell(common.BaseSSHClass):
                     exit_status = None
                 break
         else:
-            raise CommandOperationTimeOut(
-                "Unknown",
-                max_time,
-                "Command timed out\nSTDOUT:{0}\nSTDERR:{1}\n".format(
-                    stdout, stderr))
+            raise CommandOperationTimeOut("Command timed out")
         response = CommandResponse(
             stdin=None, stdout=stdout.strip(), stderr=stderr.strip(),
             exit_status=exit_status)
