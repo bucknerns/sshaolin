@@ -1,5 +1,5 @@
 tox
 mock
 flake8
-nose
+pytest
 virtualenv
