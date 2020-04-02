@@ -1,4 +1,4 @@
-# Copyright 2016 Nathan Buckner
+# Copyright 2020 Nathan Buckner
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
 # a copy of the License at
@@ -10,7 +10,6 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-import six
 
 
 class BaseModel(object):
@@ -26,17 +25,18 @@ class BaseModel(object):
         return not self.__eq__(obj)
 
     def __str__(self):
-        string = "<{0} object>\n".format(type(self).__name__)
-        for key in list(vars(self).keys()):
-            val = getattr(self, key)
-            if isinstance(val, six.text_type):
-                string += "{0} = {1}\n".format(key, val.encode("utf-8"))
-            else:
-                string += "{0} = {1}\n".format(key, val)
+        string = f"{type(self).__name__}:\n"
+        for key, val in vars(self).items():
+            if key.startswith("_"):
+                continue
+            try:
+                string += f"\t{key} = {val}\n"
+            except Exception:
+                continue
         return string
 
     def __repr__(self):
-        return str(self)
+        return self.__str__()
 
 
 class CommandResponse(BaseModel):

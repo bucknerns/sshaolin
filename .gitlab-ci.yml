@@ -1,0 +1,7 @@
+---
+include:
+  - "https://gitlab.com/bucknerns/gitlab-ci-templates/-/raw/master/python/templates.yml"
+
+
+tox:
+  extends: .tox

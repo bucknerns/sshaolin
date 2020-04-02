@@ -14,7 +14,6 @@ from io import BytesIO
 from socks import socket, create_connection
 from types import MethodType
 from uuid import uuid4
-import six
 import threading
 import time
 
@@ -149,7 +148,7 @@ class SSHClient(common.BaseSSHClass):
 
         if connect_kwargs.get("pkey") is not None:
             connect_kwargs["pkey"] = RSAKey.from_private_key(
-                six.BytesIO(six.u(connect_kwargs["pkey"])))
+                BytesIO(connect_kwargs["pkey"]))
 
         proxy_type = proxy_type or self.proxy_type
         proxy_ip = proxy_ip or self.proxy_ip
@@ -232,12 +231,12 @@ class SFTPShell(common.BaseSSHClass):
         return ret_val
 
     def get_file(self, remote_path):
-        ret_val = six.BytesIO()
+        ret_val = BytesIO()
         self.getfo(remote_path, ret_val)
         return ret_val.getvalue()
 
     def write_file(self, data, remote_path):
-        return self.putfo(six.BytesIO(data), remote_path)
+        return self.putfo(BytesIO(data), remote_path)
 
     def close(self):
         if hasattr(self, "sftp"):
