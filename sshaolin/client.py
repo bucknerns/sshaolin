@@ -275,13 +275,13 @@ class SSHShell(common.BaseSSHClass):
         self, cmd, timeout_action=RAISE_DISCONNECT,
             exception_on_timeout=True, **kwargs):
         max_time = time.time() + kwargs.get("timeout", self.timeout)
-        uuid = uuid4().hex.encode()
+        uuid = uuid4().hex
         cmd = "echo {1}\n{0}\necho {1} $?\n".format(cmd.strip(), uuid).encode()
         try:
             self._clear_channel()
             self._wait_for_active_shell(max_time)
             self.channel.send(cmd)
-            response = self._read_shell_response(uuid, max_time)
+            response = self._read_shell_response(uuid.encode(), max_time)
         except socket.timeout:
             if timeout_action == self.RAISE_DISCONNECT:
                 self.close()
